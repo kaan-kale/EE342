@@ -1,0 +1,17 @@
+# Ignore Python Folder
+Python/
+
+# Ignore Lectures Folder
+Lectures
+
+# Ignore trial files
+trial*
+
+# Ignore the compiled main file
+**/main
+
+# Ignore .vscode folder
+.vscode/
+
+# Ignore .DS_Store file
+.DS_Store
