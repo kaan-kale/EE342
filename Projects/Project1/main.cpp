@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -10,6 +11,11 @@ struct Matrix {
     double** data;
     int rows;
     int cols;
+};
+
+struct Vector {
+    double* data;
+    int size;
 };
 
 void readVectorFromFile(const std::string& filename, double*& vector, int& size);
@@ -37,19 +43,23 @@ void backSubstitute(Matrix matrix, double* vector, double* result);
 Matrix readMatrixFromFile(const std::string& matrixFileName);
 
 int main() {
-    string matrixFileName = "A.txt";
-    string vectorFileName = "b.txt";
+    string matrixFileName = "./Project1 test files-20240404/A1.txt";    
+    string vectorFileName = "./Project1 test files-20240404/b.txt";
+    string trueResultFileName = "./Project1 test files-20240404/x1.txt";
 
     Matrix matrixA;
-    matrixA = readMatrixFromFile(matrixFileName);
-
-    displayMatrix(matrixA);
 
     double* vectorB = nullptr;
     int vectorBSize;
+    
+    double* trueResult = nullptr;
+    int trueResultSize;
 
+    matrixA = readMatrixFromFile(matrixFileName);
     readVectorFromFile(vectorFileName, vectorB, vectorBSize);
+    readVectorFromFile(trueResultFileName, trueResult, trueResultSize);
 
+    displayMatrix(matrixA);
     displayVector(vectorB, vectorBSize);
 
     // Add vector B as a column to the matrix
@@ -124,6 +134,9 @@ int main() {
     
     std::cout << "Displaying Result:" << endl;
     displayVector(result, matrixA.rows);
+
+    std::cout << "Displaying the true result:" << endl;
+    displayVector(trueResult, trueResultSize);
 
     // Deallocate memory which is important for dynamic allocation
     for (int i = 0; i < matrixA.rows; ++i) {
