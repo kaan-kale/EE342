@@ -1,4 +1,4 @@
-# Project Title
+# Project 1
 This project is a C++ application that performs Gaussian elimination on a given matrix and vector. It reads the matrix and vector from files, validates them, and then performs the necessary computations.
 
 ## Functionality
