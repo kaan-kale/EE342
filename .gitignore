@@ -1,9 +1,6 @@
 # Ignore Python Folder
 Python/
 
-# Ignore Lectures Folder
-Lectures
-
 # Ignore trial files
 trial*
 
