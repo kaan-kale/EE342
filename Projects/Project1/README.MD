@@ -1,5 +1,5 @@
 # Project 1
-This project is a C++ application that performs Gaussian elimination on a given matrix and vector. It reads the matrix and vector from files, validates them, and then performs the necessary computations.
+This project is a C++ application that performs Gaussian elimination with partial pivoting on a given matrix A and vector b. It reads the matrix and vector from files, validates them, and then performs the necessary computations.
 
 ## Functionality
 The application performs the following steps:
@@ -16,6 +16,12 @@ The application performs the following steps:
 
 6. **Back Substitution:** The application performs back substitution to find the result. It first gets the last column of the matrix as a vector and removes it from the matrix using the `getLastColumnAsVector` function. It then performs back substitution using the `backSubstitute` function.
 
+6. The program returns:
+   - **1** if the file names for the Matrix A or the vector b are not provided.
+   - **2** if either the matrix A or the vector B is invalid.
+   - **3** if the matrix A is singular.
+   - **0** if all operations are completed without any errors.
+
 ## How to Run
 To run the application, you need to compile the C++ code and then run the resulting executable. You can do this from the terminal as follows:
 
@@ -31,7 +37,34 @@ bPath="test-files/b1.txt"
 ./main $APath $bPath
 ```
 
-2. Run the script
+2. Or run the script provided
 ```bash
 bash run.sh
 ```
+
+## High Condition Numbers: Brief Analysis
+
+The numerical experiments with the given 2x2 matrix A showcase the implications of high condition numbers, which are indicators of sensitivity in a system of linear equations. With condition numbers of 1 and infinity reaching 4004, the matrix is near singular, and small changes in the vector b lead to substantial changes in the solution x.
+
+### Results Overview:
+
+## Matrix A
+
+The matrix A used in the test cases is as follows:
+
+```plaintext
+1.000 1.000 
+1.000 1.001
+```
+
+**Test Case 11:**
+
+Solution: `[2, 0]` for vector `b1`
+
+**Test Case 12:**
+
+Solution: `[1, 1]` for vector `b2`
+
+### Inference:
+
+The high condition number implies that A is nearly singular. Therefore, the solutions to `Ax = b` are significantly influenced by slight perturbations in `b`. The results demonstrate the practical effects of this sensitivity: while the difference between `b1` and `b2` is minuscule (only 0.001 in one component), the solutions differ by a whole integer. This exemplifies the care required when dealing with such systems and emphasizes the importance of precision in computational methods.

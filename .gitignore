@@ -12,3 +12,22 @@ trial*
 
 # Ignore .DS_Store file
 .DS_Store
+
+**/main
+**/main2
+**.slides
+**/l1
+**/l5
+**/l4
+**/l3
+**/l2
+**/lecture
+**/lecture1
+**/lecture2
+**/lecture3
+**/lecture4
+**/lecture5
+**/slides
+**/read
+**/streampos
+**/tempCodeRunnerFile*

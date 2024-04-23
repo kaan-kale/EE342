@@ -3,8 +3,14 @@
 # Compile the cpp file
 g++ -std=c++11 -o main main.cpp
 
-A1Path="test-files/A1.txt"
-b1Path="test-files/b1.txt"
+# Loop over the numbers from 1 to 10
+for test_idx in {1..12}
+do
+    echo "Test Case ${test_idx}"
 
-# Run the compiled file
-./main $A1Path $b1Path
+  A1Path="test-files/A${test_idx}.txt"
+  b1Path="test-files/b${test_idx}.txt"
+
+  # Run the compiled file
+  ./main $A1Path $b1Path
+done

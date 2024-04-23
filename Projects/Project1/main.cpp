@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string>
 
-using namespace std;
+const double MACHINE_PRECISION = 1.0e-12;
 
 /**
  * @brief Struct to represent a matrix.
@@ -34,8 +34,11 @@ struct Vector {
  * This function modifies the input matrix to its row echelon form using
  * the Gaussian elimination algorithm. The input matrix is expected to be
  * a merged matrix, where the last column is the vector to be solved. But the
- * number of iterations is based on the number of rows in the matrix. So a
- * square matrix is also valid.
+ * number of iterations is based on the number of rows in the matrix. When we
+ * input a square matrix and a vector added as a new column, it will iterate
+ * only for the number of rows m (n > m). This makes the computation more
+ * efficient. Since only n iterations are done. We can also input a square
+ * matrix and do Gaussian Elimination.
  *
  * @param mergedMatrix The matrix to perform Gaussian elimination on. This
  * matrix is modified in-place.
@@ -43,6 +46,19 @@ struct Vector {
  * @return void
  */
 void gaussianElimination(Matrix &mergedMatrix);
+
+/**
+ * @brief Checks if a matrix is singular after Gaussian elimination.
+ *
+ * This function checks if the matrix is singular after Gaussian elimination.
+ * The matrix is considered singular if any diagonal element is zero or
+ * smaller than the machine precision.
+ *
+ * @param matrix The matrix to check for singularity.
+ *
+ * @return bool True if the matrix is singular, false otherwise.
+ */
+bool isSingularAfterGaussianElimination(Matrix matrix);
 
 /**
  * @brief Performs back substitution on a given square matrix and vector.
@@ -55,8 +71,9 @@ void gaussianElimination(Matrix &mergedMatrix);
 Vector backSubstitute(Matrix matrix, Vector vector);
 
 /**
- * @brief Merges a matrix and a vector into a single matrix. This operation
- * is useful for Gaussian elimination and back substitution.
+ * @brief Merges a matrix and a vector into a single matrix, the new vector
+ * is added as a new column. This operation is useful for Gaussian elimination
+ * and back substitution.
  *
  * @param matrix The matrix A to merge.
  * @param vector The vector b to merge.
@@ -167,6 +184,16 @@ Matrix readMatrixFromFile(const std::string &matrixFileName);
 Vector readVectorFromFile(const std::string &filename);
 
 /**
+ * @brief Saves the result vector to a .txt file.
+ *
+ * @param result The result vector to save.
+ * @param filename The name of the file to save the result to.
+ *
+ * @return void
+ */
+void saveResultToTxt(Vector result, std::string filename);
+
+/**
  * @brief Displays the matrix data to the console.
  *
  * @param matrix The matrix to display.
@@ -210,21 +237,21 @@ void deallocateMatrixMemory(Matrix **matrixPointers, int size);
  */
 void deallocateVectorMemory(Vector **vectorPointers, int size);
 
+// double MACHINEPRECISION = 10e-13;
 
-int main(int argc, char* argv[]) {
-  string matrixFileName;
-  string vectorFileName;
+int main(int argc, char *argv[]) {
+  std::string matrixFileName;
+  std::string vectorFileName;
 
   // Define the matrix, vector, and true result
   Matrix matrixA;
   Matrix mergedMatrix;
   Vector vectorB;
   Vector vectorBPrime;
-  Vector trueResult;
   Vector result;
 
   // Define the file names
-  if(argc > 2) {
+  if (argc > 2) {
     matrixFileName = argv[1];
     vectorFileName = argv[2];
   } else {
@@ -232,11 +259,8 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  // string matrixFileName = "./test-files/A11.txt";
-  // string vectorFileName = "./test-files/b1.txt";
-  string trueResultFileName = "./test-files/x1.txt";
   // Define the pointers to the matrixs and vectors, for deallocation
-  Vector *vectorPointers[] = {&vectorB, &vectorBPrime, &trueResult, &result};
+  Vector *vectorPointers[] = {&vectorB, &vectorBPrime, &result};
   Matrix *matrixPointers[] = {&matrixA, &mergedMatrix};
 
   int matrixPointerSize = sizeof(matrixPointers) / sizeof(matrixPointers[0]);
@@ -245,7 +269,6 @@ int main(int argc, char* argv[]) {
   // Read the matrix and vector from the files
   matrixA = readMatrixFromFile(matrixFileName);
   vectorB = readVectorFromFile(vectorFileName);
-  trueResult = readVectorFromFile(trueResultFileName);
 
   // Check if the matrix and vector are valid, if not return an error
   // using the || or operator to check if either is invalid
@@ -253,7 +276,7 @@ int main(int argc, char* argv[]) {
     std::cerr << "Matrix or vector is invalid." << std::endl;
     deallocateMatrixMemory(matrixPointers, matrixPointerSize);
     deallocateVectorMemory(vectorPointers, vectorPointerSize);
-    return 1;
+    return 2;
   }
 
   // Check if the matrix A is 2x2
@@ -265,13 +288,21 @@ int main(int argc, char* argv[]) {
   } else {
     std::cout << "Matrix is not 2x2" << std::endl;
   }
-  
+
   // Merge the matrix and vector for Gaussian elimination and ease of
   // computation
   mergedMatrix = mergeMatrixAndVector(matrixA, vectorB);
 
   // Perform Gaussian elimination
   gaussianElimination(mergedMatrix);
+
+  // Check if singular
+  if (isSingularAfterGaussianElimination(mergedMatrix)) {
+    std::cerr << "Matrix is singular." << std::endl;
+    deallocateMatrixMemory(matrixPointers, matrixPointerSize);
+    deallocateVectorMemory(vectorPointers, vectorPointerSize);
+    return 3;
+  }
 
   // Get the last column as a vector, and delete the last column from the
   // matrix if the second argument is true
@@ -281,12 +312,11 @@ int main(int argc, char* argv[]) {
   result = backSubstitute(mergedMatrix, vectorBPrime);
 
   // Display the calculated result
-  std::cout << "Displaying the calculated results:" << endl;
+  std::cout << "Displaying the calculated results:" << std::endl;
   displayVector(result);
 
-  // Display the true result
-  std::cout << "Displaying the true result:" << endl;
-  displayVector(trueResult);
+  // Save result to a .txt file
+  saveResultToTxt(result, "x.txt");
 
   deallocateMatrixMemory(matrixPointers, matrixPointerSize);
   deallocateVectorMemory(vectorPointers, vectorPointerSize);
@@ -326,6 +356,18 @@ void gaussianElimination(Matrix &mergedMatrix)
     }
   }
 };
+
+bool isSingularAfterGaussianElimination(Matrix matrix) {
+  // If any diagonal is zero then it is singular
+  for (int i = 0; i < matrix.rows; ++i) {
+    // Taking absolute value to account for negative numbers
+    // It is crucial to prevent bugs.
+    if (abs(matrix.data[i][i]) <= MACHINE_PRECISION) {
+      return true;
+    }
+  }
+  return false;
+}
 
 Vector backSubstitute(Matrix matrix, Vector vector) {
   // Allocate memory for the result vector
@@ -541,9 +583,10 @@ Matrix readMatrixFromFile(const std::string &matrixFileName) {
   // Loop over each row of the matrix
   for (int i = 0; i < rows; ++i) {
     // Read a line from the file
-    std::getline(infile, line); 
+    std::getline(infile, line);
 
-    // Create a stream from the line, this allows us to extract values from the line
+    // Create a stream from the line, this allows us to extract values from the
+    // line
     std::istringstream iss(line);
     for (int j = 0; j < cols; ++j) {
       // Extract a value from the line and store it in the matrix at row i col j
@@ -586,10 +629,22 @@ Vector readVectorFromFile(const std::string &filename) {
       vectorData[index++] = value;
     }
   }
-
   // Create a Vector struct and return it
   Vector vector = {vectorData, vectorSize};
   return vector;
+}
+
+void saveResultToTxt(Vector result, std::string filename) {
+  std::ofstream outfile(filename);
+  if (!outfile) {
+    std::cerr << "Failed to open the file." << std::endl;
+    return;
+  }
+
+  for (int i = 0; i < result.size; ++i) {
+    outfile << result.data[i] << std::endl;
+  }
+  outfile.close();
 }
 
 void displayMatrix(Matrix matrix) {
