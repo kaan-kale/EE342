@@ -1,4 +1,6 @@
 # Project 1
+[GitHub Repository](https://github.com/kaan-kale/EE342/tree/main/Projects/Project1)
+
 This project is a C++ application that performs Gaussian elimination with partial pivoting on a given matrix A and vector b. 
    It reads the matrix and vector from files, validates them, and then performs the necessary computations.
 
